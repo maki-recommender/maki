@@ -1,0 +1,61 @@
+version: "3.9"
+services:
+    postgres:
+        image: postgres:15
+        restart: always
+        volumes:
+            - ./data/postgres:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_USER=maki
+            - POSTGRES_PASSWORD=maki
+            - POSTGRES_DB=maki
+        ports: 
+            - 5432:5432
+    redis:
+        image: redis:7-alpine
+        restart: always
+        volumes: 
+            - ./data/redis:/data
+        ports: 
+            - 6379:6379
+
+    maki-model:
+        image: rickycorte/maki-model:release
+        restart: always
+        volumes: 
+            - ./data:/data
+        environment:
+            - MAKI_PersistentPath=/data
+            - MAKI_ModelHost=[::]:50051
+            - MAKI_ModelWorkers=10
+        ports: 
+            - 50051:50051
+
+    maki-anime-updater:
+        image: rickycorte/maki-data-updater:release
+        restart: always
+        environment:
+            - MAKI_UpdaterDatabaseConnection=postgresql://maki:maki@postgres/maki
+            - MAKI_UpdaterRunEverySeconds=900
+        depends_on:
+            - maki
+
+    maki:
+        image: rickycorte/maki-api:release
+        restart: always
+        environment:
+            - MAKI_SqlDBConnection=host=postgres user=maki password=maki dbname=maki
+            - MAKI_RedisDBConnection=redis://redis
+            - MAKI_ServerAddress=:5000
+            - MAKI_RecommendationServiceAddress=maki-model:50051
+            - MAKI_MaxRecommendations=100
+            - MAKI_DefaultRecommendations=12
+            - MAKI_ListIsOldAfterSeconds=600
+            - MAKI_RecommendationCacheExpireSeconds=86400
+            - MAKI_CacheClearAfterSeconds=604800
+        depends_on: 
+            - postgres
+            - redis
+            - maki-model
+        ports: 
+            - 5000:5000
