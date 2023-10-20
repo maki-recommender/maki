@@ -1,6 +1,6 @@
 # Maki
 
-**This version of Maki is currently under development and should not be used in production**
+**This is a new redesigned version of Maki that is currently under development and should not be used in production**
 
 [Maki](https://makichan.xyz/) is an open source anime recommendation REST API that suggests anime to watch based on the user lists on [Anilist](https://anilist.co/) or [MyAnimeList](https://myanimelist.net/).
 
